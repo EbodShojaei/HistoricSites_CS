@@ -83,4 +83,6 @@ secrets.json
 *~
 
 # Dev
+*.db*
+Migrations/
 setup.md
