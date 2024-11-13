@@ -1,0 +1,86 @@
+# Ignore build outputs
+bin/
+obj/
+out/
+*.dll
+*.exe
+*.log
+*.tmp
+*.bak
+*.pdb
+
+# User-specific files
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.sln.cache
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Dependency directories
+node_modules/
+packages/
+.vscode-test/
+
+# ASP.NET specific
+wwwroot/lib/
+wwwroot/node_modules/
+wwwroot/dist/
+
+# SQLite database files
+Data/Database/*.db
+Data/Database/*.db-shm
+Data/Database/*.db-wal
+
+# Secrets and sensitive information
+.env
+secrets.json
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+
+# Logs and debug files
+*.log
+*.vspscc
+*.vssscc
+*.vsp
+
+# JetBrains Rider project files
+.idea/
+.idea_modules/
+
+# ReSharper files
+*.DotSettings.user
+
+# Rider and ReSharper settings
+.idea/
+*.DotSettings.user
+
+# macOS files
+*.DS_Store
+._*
+
+# Git files
+*.orig
+*.rej
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Backup files
+*.bak
+*.swp
+*~
+
+# Dev
+setup.md

@@ -1,0 +1,104 @@
+{
+    "historicSites": [
+        {
+            "Id": 1,
+            "Name": "Mount Kailash",
+            "Description": "A sacred mountain in Tibet, revered in Hinduism, Buddhism, Jainism, and Bon religions. Considered the abode of Lord Shiva.",
+            "Countries": "China",
+            "Latitude": 31.0686,
+            "Longitude": 81.3119,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 2,
+            "Name": "Petra",
+            "Description": "Ancient city carved into rose-colored rock faces, featuring elaborate temples and tombs.",
+            "Countries": "Jordan",
+            "Latitude": 30.32896,
+            "Longitude": 35.444832,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 3,
+            "Name": "Hang Son Doong",
+            "Description": "The largest cave in the world, located in the heart of the Phong Nha-Ke Bang National Park.",
+            "Countries": "Vietnam",
+            "Latitude": 17.451227,
+            "Longitude": 106.28625,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 4,
+            "Name": "Great Pyramid of Giza",
+            "Description": "The oldest and largest of the three pyramids in Giza, and the last remaining wonder of the ancient world.",
+            "Countries": "Egypt",
+            "Latitude": 29.979235,
+            "Longitude": 31.134202,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 5,
+            "Name": "Aladaglar Mountains",
+            "Description": "A stunning mountain range known for its rugged beauty, with religious significance in Zoroastrianism.",
+            "Countries": "Iran",
+            "Latitude": 37.75,
+            "Longitude": 54.5,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 6,
+            "Name": "Sri Ranganatha Swamy Temple",
+            "Description": "One of the largest temple complexes in India, dedicated to Lord Ranganatha, a form of the Hindu god Vishnu.",
+            "Countries": "India",
+            "Latitude": 10.8528,
+            "Longitude": 78.7047,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 7,
+            "Name": "Machu Picchu",
+            "Description": "An ancient Incan city located high in the Andes Mountains, known for its sophisticated dry-stone construction.",
+            "Countries": "Peru",
+            "Latitude": -13.163141,
+            "Longitude": -72.544963,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 8,
+            "Name": "Stonehenge",
+            "Description": "A prehistoric monument consisting of a ring of standing stones, believed to have been used for ceremonial or religious purposes.",
+            "Countries": "United Kingdom",
+            "Latitude": 51.178882,
+            "Longitude": -1.826215,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 9,
+            "Name": "Lalibela Churches",
+            "Description": "A group of rock-hewn churches carved into the mountains, considered one of Ethiopia's holiest sites.",
+            "Countries": "Ethiopia",
+            "Latitude": 12.031372,
+            "Longitude": 39.047296,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        },
+        {
+            "Id": 10,
+            "Name": "Chichen Itza",
+            "Description": "A large pre-Columbian archaeological site, once a major focal point of the Maya civilization.",
+            "Countries": "Mexico",
+            "Latitude": 20.684285,
+            "Longitude": -88.567783,
+            "MainImageBase64": "base64_encoded_image_here",
+            "AverageRating": 5.0
+        }
+    ]
+}

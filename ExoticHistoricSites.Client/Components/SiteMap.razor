@@ -1,0 +1,62 @@
+@using ExoticHistoricSites.Shared.Models
+@using LeafletForBlazor
+
+<div class="map-container">
+    <RealTimeMap @ref="_map"
+                 class="real-time-map"
+                 OnAfterMapLoaded="OnMapLoaded">
+        <StreamLegend />
+    </RealTimeMap>
+</div>
+
+@code {
+    [Parameter]
+    public List<HistoricSite> Sites { get; set; } = new();
+
+    private RealTimeMap? _map;
+
+    private async Task OnMapLoaded(RealTimeMap.MapEventArgs args)
+    {
+        if (_map == null) return;
+
+        var points = Sites.Select(site => new RealTimeMap.StreamPoint
+        {
+            guid = Guid.NewGuid(),
+            latitude = site.Latitude,
+            longitude = site.Longitude,
+            type = "historic-site",
+            value = new
+            {
+                site.Name,
+                site.Description,
+                site.Countries,
+                Id = site.Id
+            }
+        }).ToList();
+
+        await _map.Geometric.Points.upload(points);
+
+        _map.Geometric.Points.Appearance().pattern = new RealTimeMap.PointSymbol
+        {
+            radius = 8,
+            color = "#2c3e50",
+            fillColor = "#3498db",
+            weight = 2,
+            opacity = 0.8,
+            fillOpacity = 0.6
+        };
+
+        _map.Geometric.Points.AppearanceOnType(p => p.type == "historic-site").pattern =
+            new RealTimeMap.PointTooltip
+            {
+                content = "<div class='site-tooltip'>" +
+                         "<h3>${value.Name}</h3>" +
+                         "<p>${value.Countries}</p>" +
+                         "<button onclick=\"window.location.href='/site/${value.Id}'\" " +
+                         "class='btn btn-primary btn-sm'>View Details</button>" +
+                         "</div>",
+                opacity = 0.9,
+                permanent = false
+            };
+    }
+}
