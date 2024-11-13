@@ -1,7 +1,13 @@
 @using ExoticHistoricSites.Shared.Models
-@using LeafletForBlazor
 @using ExoticHistoricSites.Client.Services
 @inject HistoricSiteService SiteService
+@inject IJSRuntime JS
+
+@* Accept the Sites parameter *@
+@code {
+    [Parameter]
+    public List<HistoricSite> Sites { get; set; } = new List<HistoricSite>();
+}
 
 <div class="map-container">
     @if (_loading)
@@ -12,17 +18,10 @@
             </div>
         </div>
     }
-
-    <div class="real-time-map">
-        <RealTimeMap @ref="_map"
-                    OnAfterMapLoaded="OnMapLoaded">
-            <StreamLegend />
-        </RealTimeMap>
-    </div>
+    <div id="map" class="leaflet-container"></div>
 </div>
 
 @code {
-    private RealTimeMap? _map;
     private bool _loading = true;
     private List<HistoricSite> _sites = new();
 
@@ -43,60 +42,62 @@
         }
     }
 
-    private async Task OnMapLoaded(RealTimeMap.MapEventArgs args)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_map == null) return;
-
-        var points = _sites.Select(site => new RealTimeMap.StreamPoint
+        if (firstRender)
         {
-            guid = Guid.NewGuid(),
-            latitude = site.Latitude,
-            longitude = site.Longitude,
-            type = "historic-site",
-            value = new
+            // Load Leaflet CSS and JS
+            var assetsLoaded = await LoadLeafletAssets();
+
+            if (assetsLoaded)
             {
-                site.Name,
-                site.Description,
-                site.Countries,
-                Id = site.Id
+                // Initialize the map after assets are loaded
+                await JS.InvokeVoidAsync("initializeMap", _sites);
             }
-        }).ToList();
-
-        await _map.Geometric.Points.upload(points);
-
-        _map.Geometric.Points.Appearance().pattern = new RealTimeMap.PointSymbol
-        {
-            radius = 8,
-            color = "#2c3e50",
-            fillColor = "#3498db",
-            weight = 2,
-            opacity = 0.8,
-            fillOpacity = 0.6
-        };
-
-        _map.Geometric.Points.AppearanceOnType(p => p.type == "historic-site").pattern =
-            new RealTimeMap.PointTooltip
+            else
             {
-                content = "<div class='site-tooltip'>" +
-                         "<h3>${value.Name}</h3>" +
-                         "<p>${value.Countries}</p>" +
-                         "<button onclick=\"window.location.href='/site/${value.Id}'\" " +
-                         "class='btn btn-primary btn-sm'>View Details</button>" +
-                         "</div>",
-                opacity = 0.9,
-                permanent = false
-            };
+                Console.WriteLine("Failed to load Leaflet assets.");
+            }
+        }
+    }
+
+    private async Task<bool> LoadLeafletAssets()
+    {
+        // Load Leaflet CSS
+        var leafletCss = await JS.InvokeAsync<bool>("loadCss", "https://unpkg.com/leaflet/dist/leaflet.css");
+        if (!leafletCss)
+        {
+            Console.WriteLine("Failed to load Leaflet CSS.");
+            return false;
+        }
+
+        // Load Leaflet JS
+        var leafletJs = await JS.InvokeAsync<bool>("loadScript", "https://unpkg.com/leaflet/dist/leaflet.js");
+        if (!leafletJs)
+        {
+            Console.WriteLine("Failed to load Leaflet JS.");
+            return false;
+        }
+
+        return true;
     }
 }
 
 <style>
-    .map-container {
-        position: relative;
-        height: calc(100vh - 64px);
-        width: 100%;
+    /* Ensure the parent containers occupy full height */
+    html, body, #app, .map-container {
+        height: 100%;
+        margin: 0;
+        padding: 0;
     }
 
-    .real-time-map {
+    .map-container {
+        position: relative;
+        width: 100%;
+        height: 50vh;
+    }
+
+    .leaflet-container {
         height: 100%;
         width: 100%;
     }
@@ -114,27 +115,188 @@
         z-index: 1000;
     }
 
-    .site-tooltip {
+    .site-popup {
         padding: 10px;
         text-align: center;
+        pointer-events: auto; /* Ensure interactive elements work */
     }
 
-    .site-tooltip h3 {
+    .site-popup h3 {
         margin: 0 0 5px 0;
         font-size: 1.1rem;
     }
 
-    .site-tooltip p {
+    .site-popup p {
         margin: 0 0 10px 0;
         font-size: 0.9rem;
     }
 
-    .site-tooltip button {
+    .site-popup button {
         font-size: 0.8rem;
     }
 
-    ::deep .leaflet-container {
-        height: 100%;
-        width: 100%;
+    /* Custom styles for popups */
+    .custom-popup {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        padding: 15px;
+    }
+
+    .custom-popup h3 {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+    }
+
+    .custom-popup p {
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+
+    .custom-popup button {
+        font-size: 0.9rem;
+    }
+
+    /* Override Leaflet's default popup styles */
+    .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+    }
+
+    .leaflet-popup-content {
+        margin: 8px 12px;
+    }
+
+    .leaflet-popup-tip {
+        background: #fff;
     }
 </style>
+
+@* Include necessary JavaScript functions *@
+<script>
+    // Function to dynamically load a CSS file
+    window.loadCss = (href) => {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`link[href="${href}"]`)) {
+                console.log(`CSS already loaded: ${href}`);
+                resolve(true);
+                return;
+            }
+
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            link.onload = () => {
+                console.log(`Successfully loaded CSS: ${href}`);
+                resolve(true);
+            };
+            link.onerror = () => {
+                console.error(`Failed to load CSS: ${href}`);
+                resolve(false);
+            };
+            document.head.appendChild(link);
+        });
+    };
+
+    // Function to dynamically load a JS script
+    window.loadScript = (src) => {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) {
+                console.log(`Script already loaded: ${src}`);
+                resolve(true);
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => {
+                console.log(`Successfully loaded script: ${src}`);
+                resolve(true);
+            };
+            script.onerror = () => {
+                console.error(`Failed to load script: ${src}`);
+                resolve(false);
+            };
+            document.body.appendChild(script);
+        });
+    };
+
+    // Function to initialize the Leaflet map
+    window.initializeMap = (sites) => {
+        console.log("Initializing Leaflet map with sites:", sites);
+
+        if (typeof L === 'undefined') {
+            console.error("Leaflet library is not loaded.");
+            return;
+        }
+
+        // Initialize the map centered at [0, 0] with zoom level 2
+        var map = L.map('map').setView([0, 0], 2);
+        console.log("Map initialized.");
+
+        // Define tile layer with noWrap and set bounds
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            noWrap: true, // Prevent map wrapping
+            bounds: [
+                [-90, -180], // SouthWest
+                [90, 180]     // NorthEast
+            ],
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        console.log("Tile layer added.");
+
+        // Set maximum bounds to prevent panning outside the specified area
+        var southWest = L.latLng(-90, -180);
+        var northEast = L.latLng(90, 180);
+        var bounds = L.latLngBounds(southWest, northEast);
+        map.setMaxBounds(bounds);
+        console.log("Map bounds set.");
+
+        // Ensure the map stays within the bounds when dragged
+        map.on('drag', function () {
+            map.panInsideBounds(bounds, { animate: false });
+        });
+        console.log("Drag event handler added.");
+
+        // Add markers for each historic site
+        sites.forEach(site => {
+            if (site.latitude && site.longitude) {
+                var marker = L.marker([site.latitude, site.longitude]).addTo(map);
+                console.log(`Marker added for site: ${site.name}`);
+
+                // Define the popup content
+                var popupContent = `
+                    <div class='site-popup'>
+                        <h3>${site.name}</h3>
+                        <p>${site.countries}</p>
+                        <button onclick="window.location.href='/site/${site.id}'" class='btn btn-primary btn-sm'>View Details</button>
+                    </div>
+                `;
+
+                // Bind a popup to the marker with specified options
+                marker.bindPopup(popupContent, {
+                    closeButton: true,
+                    maxWidth: 300,
+                    autoClose: true,      // Automatically close other popups when a new one is opened
+                    closeOnClick: true,   // Close popup when clicking on the map
+                    className: 'custom-popup' // Apply custom CSS class for styling
+                });
+
+                // Open the popup on marker click
+                marker.on('click', function () {
+                    marker.openPopup();
+                    console.log(`Popup opened for site: ${site.name}`);
+                });
+            } else {
+                console.warn(`Site "${site.name}" does not have valid coordinates.`);
+            }
+        });
+
+        // Close all popups when clicking outside any marker
+        map.on('click', function (e) {
+            map.closePopup();
+            console.log("All popups closed.");
+        });
+
+        console.log("Map initialization complete.");
+    };
+</script>
