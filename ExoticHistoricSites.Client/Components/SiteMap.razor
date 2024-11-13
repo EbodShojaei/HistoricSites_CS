@@ -1,25 +1,53 @@
 @using ExoticHistoricSites.Shared.Models
 @using LeafletForBlazor
+@using ExoticHistoricSites.Client.Services
+@inject HistoricSiteService SiteService
 
 <div class="map-container">
-    <RealTimeMap @ref="_map"
-                 class="real-time-map"
-                 OnAfterMapLoaded="OnMapLoaded">
-        <StreamLegend />
-    </RealTimeMap>
+    @if (_loading)
+    {
+        <div class="loading-overlay">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+
+    <div class="real-time-map">
+        <RealTimeMap @ref="_map"
+                    OnAfterMapLoaded="OnMapLoaded">
+            <StreamLegend />
+        </RealTimeMap>
+    </div>
 </div>
 
 @code {
-    [Parameter]
-    public List<HistoricSite> Sites { get; set; } = new();
-
     private RealTimeMap? _map;
+    private bool _loading = true;
+    private List<HistoricSite> _sites = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _sites = await SiteService.GetAllSitesAsync();
+            Console.WriteLine($"Loaded {_sites.Count} sites");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading sites: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
 
     private async Task OnMapLoaded(RealTimeMap.MapEventArgs args)
     {
         if (_map == null) return;
 
-        var points = Sites.Select(site => new RealTimeMap.StreamPoint
+        var points = _sites.Select(site => new RealTimeMap.StreamPoint
         {
             guid = Guid.NewGuid(),
             latitude = site.Latitude,
@@ -60,3 +88,53 @@
             };
     }
 }
+
+<style>
+    .map-container {
+        position: relative;
+        height: calc(100vh - 64px);
+        width: 100%;
+    }
+
+    .real-time-map {
+        height: 100%;
+        width: 100%;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .site-tooltip {
+        padding: 10px;
+        text-align: center;
+    }
+
+    .site-tooltip h3 {
+        margin: 0 0 5px 0;
+        font-size: 1.1rem;
+    }
+
+    .site-tooltip p {
+        margin: 0 0 10px 0;
+        font-size: 0.9rem;
+    }
+
+    .site-tooltip button {
+        font-size: 0.8rem;
+    }
+
+    ::deep .leaflet-container {
+        height: 100%;
+        width: 100%;
+    }
+</style>
