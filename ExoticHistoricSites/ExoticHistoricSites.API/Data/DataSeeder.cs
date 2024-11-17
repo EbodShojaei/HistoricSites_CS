@@ -11,11 +11,11 @@ public static class DataSeeder
     private static readonly JsonSerializerOptions JsonOptions =
         new() { PropertyNameCaseInsensitive = true };
 
-    public static async Task SeedAsync(ApplicationDbContext context)
+    public static async Task SeedAsync(ApplicationDbContext context, IHostEnvironment environment)
     {
         try
         {
-            await SeedHistoricSitesAsync(context);
+            await SeedHistoricSitesAsync(context, environment);
         }
         catch (Exception ex)
         {
@@ -24,18 +24,28 @@ public static class DataSeeder
         }
     }
 
-    private static async Task SeedHistoricSitesAsync(ApplicationDbContext context)
+    private static async Task SeedHistoricSitesAsync(
+        ApplicationDbContext context,
+        IHostEnvironment environment
+    )
     {
+        Console.WriteLine("Starting data seeding process...");
+        Console.WriteLine(
+            $"Current Environment: {(environment.IsDevelopment() ? "Development" : "Production")}"
+        );
+
         if (await context.HistoricSites.AnyAsync())
         {
             Console.WriteLine("Historic sites already seeded.");
             return;
         }
 
-        // Build paths
-        var currentDir = Directory.GetCurrentDirectory();
-        var jsonPath = Path.Combine(currentDir, "Data", "SeedData", "historicSites.json");
-        var imagesDir = Path.Combine(currentDir, "Data", "Images");
+        // Use AppContext.BaseDirectory
+        string baseDir = AppContext.BaseDirectory;
+        Console.WriteLine($"Base Directory: {baseDir}");
+
+        var jsonPath = Path.Combine(baseDir, "Data", "SeedData", "historicSites.json");
+        var imagesDir = Path.Combine(baseDir, "Data", "Images");
 
         Console.WriteLine($"Looking for seed file at: {jsonPath}");
         Console.WriteLine($"Looking for images in: {imagesDir}");
@@ -45,11 +55,19 @@ public static class DataSeeder
             Console.WriteLine($"Seed file not found at: {jsonPath}");
             return;
         }
+        else
+        {
+            Console.WriteLine($"Found seed file at: {jsonPath}");
+        }
 
         if (!Directory.Exists(imagesDir))
         {
             Console.WriteLine($"Images directory not found at: {imagesDir}");
             return;
+        }
+        else
+        {
+            Console.WriteLine($"Found images directory at: {imagesDir}");
         }
 
         // Read and deserialize the JSON file
@@ -98,16 +116,17 @@ public static class DataSeeder
                         $"Error processing image for site ID {site.Id}: {ex.Message}"
                     );
                     // Set a default or placeholder image if needed
-                    site.ImageBase64 = "base64_encoded_image_here"; // You might want to provide a default image
+                    site.ImageBase64 = null;
                 }
             }
             else
             {
                 Console.WriteLine($"Image not found for site ID {site.Id}: {imagePath}");
-                site.ImageBase64 = "base64_encoded_image_here"; // You might want to provide a default image
+                site.ImageBase64 = null;
             }
 
             await context.HistoricSites.AddAsync(site);
+            Console.WriteLine($"Added site ID {site.Id} to context.");
         }
 
         await context.SaveChangesAsync();

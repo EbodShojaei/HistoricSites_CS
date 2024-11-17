@@ -33,9 +33,16 @@ run:
 	cd ExoticHistoricSites.API && dotnet run
 
 host:
-	@echo "Deploying to Azure..."
-	dotnet publish -c Release -o ./publish
-	zip -r publish.zip ./publish
+	@echo "Publishing the application..."
+	dotnet publish ExoticHistoricSites.API -c Release -o ./publish
+	@echo "Verifying publish directory..."
+	ls ./publish
+	
+	@echo "Creating a ZIP package..."
+	cd publish && zip -r ../publish.zip .
+	
+	@echo "Deploying to Azure Web App..."
 	az webapp deployment source config-zip --resource-group $(RESOURCE_GROUP) --name $(WEB_APP_NAME) --src ./publish.zip
-	@echo "Deployment completed."
+	
+	@echo "Deployment completed successfully."
 	rm -f publish.zip
