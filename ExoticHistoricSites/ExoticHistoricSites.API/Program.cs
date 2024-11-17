@@ -11,12 +11,16 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "ExoticHistoricSites API", Version = "v1" });
 });
 
-// Configure CORS - Add this before other middleware
+// Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(policyBuilder =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Location");
+        policyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .WithExposedHeaders("Location");
     });
 });
 
@@ -37,30 +41,34 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Important: Use CORS before routing and endpoints
+// Enable CORS
 app.UseCors();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-// Initialize Database
+// Initialize Database and Seed Data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        var logger = services.GetRequiredService<ILogger<Program>>();
-
         await context.Database.MigrateAsync();
-        await DataSeeder.SeedAsync(context);
 
-        logger.LogInformation("Database initialized successfully.");
+        // Check if seeding should be run (optional flag)
+        var shouldSeed = builder.Configuration.GetValue<bool>("RunDatabaseSeeding");
+        if (shouldSeed || app.Environment.IsDevelopment())
+        {
+            await DataSeeder.SeedAsync(context);
+            logger.LogInformation("Database seeded successfully.");
+        }
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while initializing the database.");
         throw;
     }
