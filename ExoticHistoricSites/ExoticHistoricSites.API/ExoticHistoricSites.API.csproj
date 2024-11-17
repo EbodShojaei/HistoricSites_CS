@@ -24,7 +24,10 @@
 
   <!-- Create Data/Db directory -->
   <Target Name="CreateDataDbDirectory" BeforeTargets="Build">
-    <MakeDir Directories="$(ProjectDir)Data\Db" />
+    <MakeDir Directories="$(ProjectDir)Data\Db" Condition="!Exists('$(ProjectDir)Data\Db')" />
+    <MakeDir Directories="$(ProjectDir)Data\Images" Condition="!Exists('$(ProjectDir)Data\Images')" />
+    <MakeDir Directories="$(ProjectDir)Data\SeedData" Condition="!Exists('$(ProjectDir)Data\SeedData')" />
+    <Message Text="Ensuring required directories exist..." Importance="high" />
   </Target>
 
   <ItemGroup>
